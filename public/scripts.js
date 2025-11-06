@@ -1,20 +1,24 @@
 const socket = io();
 
+// Three.js Setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// Licht
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(5,10,5);
 scene.add(light);
 
+// Spieler
 let players = {};
 let localPlayer = new THREE.Mesh(new THREE.BoxGeometry(1,2,1), new THREE.MeshBasicMaterial({color:0x00ff00}));
 scene.add(localPlayer);
 localPlayer.position.y = 1;
 
+// Boden
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(50,50), new THREE.MeshPhongMaterial({color:0x228B22}));
 ground.rotation.x = -Math.PI/2;
 scene.add(ground);
@@ -31,36 +35,37 @@ for(let i=0;i<30;i++){
 
 // Bewegung + Kamera
 let velocityY=0, canJump=true;
-let keys={};
-document.addEventListener("keydown", e=>keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e=>keys[e.key.toLowerCase()]=false);
-document.addEventListener("click", ()=>document.body.requestPointerLock());
+let moveX=0, moveZ=0, yawMobile=0, pitchMobile=0;
+let hp=100;
+const healthDiv = document.getElementById("health");
 
-let yaw=0,pitch=0;
-document.addEventListener("mousemove", e=>{
-  yaw -= e.movementX*0.002;
-  pitch -= e.movementY*0.002;
-  pitch=Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+// Touch Events
+document.getElementById("joystick-left").addEventListener("touchmove", e=>{
+  const t = e.touches[0];
+  const rect = e.target.getBoundingClientRect();
+  moveX = (t.clientX - rect.left - rect.width/2)/50;
+  moveZ = (t.clientY - rect.top - rect.height/2)/50;
 });
-
-document.addEventListener("keydown", e=>{
-  if(e.code==="Space" && canJump){ velocityY=0.2; canJump=false; }
+document.getElementById("joystick-right").addEventListener("touchmove", e=>{
+  const t = e.touches[0];
+  const rect = e.target.getBoundingClientRect();
+  yawMobile = (t.clientX - rect.left - rect.width/2)*0.005;
+  pitchMobile = (t.clientY - rect.top - rect.height/2)*0.005;
 });
-
-document.addEventListener("mousedown", ()=>{
+document.getElementById("jump-btn").addEventListener("touchstart", ()=>{
+  if(canJump){ velocityY=0.2; canJump=false; }
+});
+document.getElementById("attack-btn").addEventListener("touchstart", ()=>{
   for(let id in players){
     if(id!==socket.id){
-      const dx=players[id].x-localPlayer.position.x;
-      const dz=players[id].z-localPlayer.position.z;
+      const dx = players[id].x - localPlayer.position.x;
+      const dz = players[id].z - localPlayer.position.z;
       if(Math.sqrt(dx*dx+dz*dz)<2) socket.emit("attack", id);
     }
   }
 });
 
-// Health Anzeige
-let hp=100;
-const healthDiv = document.getElementById("health");
-
+// Server Events
 socket.on("currentPlayers", data=>{
   for(let id in data){
     if(id!==socket.id){
@@ -83,26 +88,24 @@ socket.on("playerHit", data=>{
   if(data.id===socket.id){ hp=data.hp; healthDiv.innerText="HP: "+hp; }
 });
 
+// Animation Loop
 function animate(){
   requestAnimationFrame(animate);
 
-  let dirX=0,dirZ=0;
-  if(keys["w"]) dirZ=-0.2;
-  if(keys["s"]) dirZ=0.2;
-  if(keys["a"]) dirX=-0.2;
-  if(keys["d"]) dirX=0.2;
-
-  localPlayer.position.x += dirX*Math.cos(yaw)-dirZ*Math.sin(yaw);
-  localPlayer.position.z += dirZ*Math.cos(yaw)+dirX*Math.sin(yaw);
+  // Bewegung
+  localPlayer.position.x += moveX * Math.cos(yawMobile) - moveZ * Math.sin(yawMobile);
+  localPlayer.position.z += moveZ * Math.cos(yawMobile) + moveX * Math.sin(yawMobile);
 
   velocityY -= 0.01;
   localPlayer.position.y += velocityY;
   if(localPlayer.position.y<=1){ localPlayer.position.y=1; velocityY=0; canJump=true; }
 
+  // Kamera
+  yawMobile=0; pitchMobile=0;
   camera.position.copy(localPlayer.position);
   camera.position.y+=1.5;
-  camera.rotation.set(pitch,yaw,0);
 
+  // Senden der Position an Server
   socket.emit("move",{x:localPlayer.position.x,y:localPlayer.position.y,z:localPlayer.position.z,hp:hp});
 
   renderer.render(scene,camera);
