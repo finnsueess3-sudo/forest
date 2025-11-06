@@ -12,7 +12,7 @@ let players = {};
 
 io.on("connection", socket => {
   console.log("Neuer Spieler:", socket.id);
-  players[socket.id] = { x:0, y:0, z:0, hp:100 };
+  players[socket.id] = { x:0, y:0, z:0, hp:100, weapon:'sword' };
 
   socket.emit("currentPlayers", players);
   socket.broadcast.emit("newPlayer", { id: socket.id, ...players[socket.id] });
