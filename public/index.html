@@ -2,12 +2,21 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Forest Game</title>
+<title>Forest Game Mobile</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div id="crosshair">+</div>
 <div id="health">HP: 100</div>
+
+<!-- Mobile Controls -->
+<div id="touch-controls">
+  <div id="joystick-left" class="joystick"></div>
+  <div id="joystick-right" class="joystick"></div>
+  <button id="jump-btn">Jump</button>
+  <button id="attack-btn">Attack</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="scripts.js"></script>
