@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<title>Forest Game</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Forest Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Loadscreen + PIN -->
+  <div id="loadscreen">
+    <h1>Forest Game</h1>
+    <p>Gib PIN ein (4-stellig):</p>
+    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="PIN">
+    <button id="pinBtn">OK</button>
+    <p id="pinMsg"></p>
 
-<!-- Loadscreen + PIN -->
-<div id="loadscreen">
-  <h1>Forest Game</h1>
-  <p>Gib den PIN ein, um zu spielen:</p>
-  <input type="password" id="pinInput" placeholder="PIN">
-  <button id="pinButton">OK</button>
-  <p id="pinMsg"></p>
-</div>
+    <div id="progressWrap" style="display:none;">
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <div id="progressText">0%</div>
+    </div>
+  </div>
 
-<!-- Overlay -->
-<div id="overlay" style="display:none;">
-  <div id="health">HP: 100</div>
-  <div id="info">WASD = laufen • Shift = Sprint • Linke Maustaste = Schwert • R = Bogen</div>
-  <div id="center">Click to play</div>
-</div>
+  <!-- Overlay (sichtbar nach Login) -->
+  <div id="overlay" style="display:none;">
+    <div id="hudLeft">
+      <div id="health">HP: 100</div>
+    </div>
+    <div id="hudCenter">
+      <div id="centerBtn">Klicken um PointerLock</div>
+    </div>
+    <div id="hudRight">
+      <div id="hint">WASD = laufen • Shift = sprint • Leertaste = springen • LMB = Angriff • R = Waffe</div>
+    </div>
+  </div>
 
-<!-- Skript -->
-<script type="module" src="scripts.js"></script>
-<script src="/socket.io/socket.io.js"></script>
+  <!-- socket.io client (wird vom Server bereitgestellt) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Hauptskript (module) -->
+  <script type="module" src="scripts.js"></script>
 </body>
 </html>
