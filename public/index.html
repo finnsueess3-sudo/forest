@@ -7,36 +7,30 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Loadscreen + PIN -->
+  <!-- Loadscreen (ohne PIN) -->
   <div id="loadscreen">
     <h1>Forest Game</h1>
-    <p>Gib PIN ein (4-stellig):</p>
-    <input id="pinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="PIN">
-    <button id="pinBtn">OK</button>
-    <p id="pinMsg"></p>
-
-    <div id="progressWrap" style="display:none;">
+    <p>Lädt bitte warten...</p>
+    <div id="progressWrap">
       <div id="progressBar"><div id="progressFill"></div></div>
       <div id="progressText">0%</div>
     </div>
   </div>
 
-  <!-- Overlay (sichtbar nach Login) -->
+  <!-- HUD / Overlay -->
   <div id="overlay" style="display:none;">
     <div id="hudLeft">
       <div id="health">HP: 100</div>
     </div>
     <div id="hudCenter">
-      <div id="centerBtn">Klicken um PointerLock</div>
+      <div id="centerBtn">Klicken um zu starten</div>
     </div>
     <div id="hudRight">
-      <div id="hint">WASD = laufen • Shift = sprint • Leertaste = springen • LMB = Angriff • R = Waffe</div>
+      <div id="hint">WASD = Laufen • Shift = Sprint • Leertaste = Springen • Maus = Kamera • Klick = Angriff</div>
     </div>
   </div>
 
-  <!-- socket.io client (wird vom Server bereitgestellt) -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Hauptskript (module) -->
   <script type="module" src="scripts.js"></script>
 </body>
 </html>
