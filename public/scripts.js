@@ -101,8 +101,8 @@ function drawMap() {
 
   // Wege
   ctx.fillStyle = '#b8936b';
-  ctx.fillRect(0 - camera.x + 500, 0 - camera.y + 500, 2000, 60);
-  ctx.fillRect(0 - camera.x + 1000, 0 - camera.y + 100, 60, 1800);
+  ctx.fillRect(500 - camera.x, 500 - camera.y, 2000, 60);
+  ctx.fillRect(1000 - camera.x, 100 - camera.y, 60, 1800);
 
   // Häuser
   for (let i = 0; i < 6; i++) {
@@ -136,11 +136,10 @@ function drawPlayers() {
 
     // Schwert Animation
     if (id === myId && attacking) {
-      let sx = 0, sy = 0;
-      if (p.facing === 'up') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 16, py - 48, 32, 32); }
-      if (p.facing === 'down') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 16, py, 32, 32); }
-      if (p.facing === 'left') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 48, py - 16, 32, 32); }
-      if (p.facing === 'right') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px + 16, py - 16, 32, 32); }
+      if (p.facing === 'up') ctx.drawImage(images.sword, 0, 0, 32, 32, px - 16, py - 48, 32, 32);
+      if (p.facing === 'down') ctx.drawImage(images.sword, 0, 0, 32, 32, px - 16, py, 32, 32);
+      if (p.facing === 'left') ctx.drawImage(images.sword, 0, 0, 32, 32, px - 48, py - 16, 32, 32);
+      if (p.facing === 'right') ctx.drawImage(images.sword, 0, 0, 32, 32, px + 16, py - 16, 32, 32);
     }
 
     // HP-Balken
