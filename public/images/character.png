@@ -1,0 +1,2 @@
+let dirY = 0; // Blickrichtung: 0=down,1=left,2=right,3=up
+ctx.drawImage(images.character, frame*32, dirY*32, 32, 32, px-16, py-32, 32, 32);
