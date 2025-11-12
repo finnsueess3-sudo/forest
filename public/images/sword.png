@@ -1,0 +1,1 @@
+ctx.drawImage(images.sword, 0,0,32,32, px-16, py-48, 32, 32);
