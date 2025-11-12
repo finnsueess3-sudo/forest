@@ -13,6 +13,19 @@ let camera = { x: 0, y: 0 };
 let attacking = false;
 
 const speed = 3;
+let frame = 0;
+
+// ==== Grafik-Assets ====
+const images = {};
+const imageList = ["character", "house", "fire", "arrow", "sword", "ground"];
+imageList.forEach(name => {
+  const img = new Image();
+  img.src = `images/${name}.png`;
+  images[name] = img;
+});
+
+// Animations-Frame-Zähler
+setInterval(() => frame = (frame + 1) % 4, 200); // 4 Frames pro Animation
 
 document.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
@@ -21,6 +34,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
+// ==== Socket.IO Events ====
 socket.on('connect', () => myId = socket.id);
 socket.on('currentPlayers', d => players = d);
 socket.on('newPlayer', ({ id, data }) => players[id] = data);
@@ -29,6 +43,7 @@ socket.on('playerMoved', ({ id, data }) => players[id] = data);
 socket.on('playerHit', ({ id, hp }) => players[id].hp = hp);
 socket.on('newArrow', arrow => arrows.push(arrow));
 
+// ==== Spieler-Aktionen ====
 function attack() {
   if (attacking) return;
   attacking = true;
@@ -40,18 +55,19 @@ function shootArrow() {
   const me = players[myId];
   if (!me) return;
   const dir = me.facing;
-  const speed = 6;
+  const speedArrow = 6;
   const arrow = {
     x: me.x,
     y: me.y,
-    dx: dir === 'left' ? -speed : dir === 'right' ? speed : 0,
-    dy: dir === 'up' ? -speed : dir === 'down' ? speed : 0,
+    dx: dir === 'left' ? -speedArrow : dir === 'right' ? speedArrow : 0,
+    dy: dir === 'up' ? -speedArrow : dir === 'down' ? speedArrow : 0,
     lifetime: 100
   };
   arrows.push(arrow);
   socket.emit('shootArrow', arrow);
 }
 
+// ==== Update-Funktion ====
 function update() {
   const me = players[myId];
   if (!me) return;
@@ -69,6 +85,7 @@ function update() {
   camera.x = me.x - canvas.width / 2;
   camera.y = me.y - canvas.height / 2;
 
+  // Update Pfeile
   arrows = arrows.filter(a => a.lifetime-- > 0);
   arrows.forEach(a => {
     a.x += a.dx;
@@ -76,44 +93,30 @@ function update() {
   });
 }
 
+// ==== Zeichnen ====
 function drawMap() {
+  // Boden
   ctx.fillStyle = '#285128';
   ctx.fillRect(-camera.x, -camera.y, MAP_WIDTH, MAP_HEIGHT);
 
-  // simple dirt paths
+  // Wege
   ctx.fillStyle = '#b8936b';
   ctx.fillRect(0 - camera.x + 500, 0 - camera.y + 500, 2000, 60);
   ctx.fillRect(0 - camera.x + 1000, 0 - camera.y + 100, 60, 1800);
 
-  // Houses (more realistic)
+  // Häuser
   for (let i = 0; i < 6; i++) {
     const hx = 300 * i + 400 - camera.x;
     const hy = 300 * i + 300 - camera.y;
-    // walls
-    ctx.fillStyle = '#8b5a2b';
-    ctx.fillRect(hx, hy, 120, 100);
-    // roof
-    ctx.fillStyle = '#5a1a1a';
-    ctx.beginPath();
-    ctx.moveTo(hx - 10, hy);
-    ctx.lineTo(hx + 60, hy - 40);
-    ctx.lineTo(hx + 130, hy);
-    ctx.closePath();
-    ctx.fill();
-    // door
-    ctx.fillStyle = '#333';
-    ctx.fillRect(hx + 50, hy + 60, 20, 40);
+    ctx.drawImage(images.house, hx, hy, 128, 128);
   }
 
-  // campfires
+  // Feuerstellen (animiert)
   for (let i = 0; i < 8; i++) {
     const fx = (i * 300 + 250) - camera.x;
     const fy = (i * 200 + 600) - camera.y;
-    const flicker = 8 + Math.sin(Date.now() / 100 + i) * 2;
-    ctx.beginPath();
-    ctx.arc(fx, fy, flicker, 0, Math.PI * 2);
-    ctx.fillStyle = 'orange';
-    ctx.fill();
+    const fireFrame = Math.floor((Date.now() / 150 + i) % 4);
+    ctx.drawImage(images.fire, fireFrame * 32, 0, 32, 32, fx, fy, 32, 32);
   }
 }
 
@@ -123,35 +126,34 @@ function drawPlayers() {
     const px = p.x - camera.x;
     const py = p.y - camera.y;
 
-    // body
-    ctx.fillStyle = id === myId ? '#00ffff' : '#ff4444';
-    ctx.fillRect(px - 8, py - 16, 16, 28);
+    // Charakter-Sprite: 4 Richtungen, 4 Frames
+    let dirY = 0; // row im Spritesheet
+    if (p.facing === 'down') dirY = 0;
+    if (p.facing === 'left') dirY = 1;
+    if (p.facing === 'right') dirY = 2;
+    if (p.facing === 'up') dirY = 3;
+    ctx.drawImage(images.character, frame * 32, dirY * 32, 32, 32, px - 16, py - 32, 32, 32);
 
-    // head
-    ctx.fillStyle = '#ffe0bd';
-    ctx.fillRect(px - 6, py - 26, 12, 12);
-
-    // sword animation
+    // Schwert Animation
     if (id === myId && attacking) {
-      ctx.fillStyle = 'silver';
-      if (p.facing === 'up') ctx.fillRect(px - 2, py - 40, 4, 12);
-      if (p.facing === 'down') ctx.fillRect(px - 2, py + 20, 4, 12);
-      if (p.facing === 'left') ctx.fillRect(px - 16, py - 8, 12, 4);
-      if (p.facing === 'right') ctx.fillRect(px + 4, py - 8, 12, 4);
+      let sx = 0, sy = 0;
+      if (p.facing === 'up') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 16, py - 48, 32, 32); }
+      if (p.facing === 'down') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 16, py, 32, 32); }
+      if (p.facing === 'left') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px - 48, py - 16, 32, 32); }
+      if (p.facing === 'right') { sx = 0; sy = 0; ctx.drawImage(images.sword, sx, sy, 32, 32, px + 16, py - 16, 32, 32); }
     }
 
-    // HP bar
+    // HP-Balken
     ctx.fillStyle = 'white';
-    ctx.fillRect(px - 10, py - 34, 20, 3);
+    ctx.fillRect(px - 10, py - 36, 20, 4);
     ctx.fillStyle = 'lime';
-    ctx.fillRect(px - 10, py - 34, (p.hp / 4) * 20, 3);
+    ctx.fillRect(px - 10, py - 36, (p.hp / 4) * 20, 4);
   }
 }
 
 function drawArrows() {
-  ctx.fillStyle = '#d4af37';
   for (let a of arrows) {
-    ctx.fillRect(a.x - camera.x, a.y - camera.y, 6, 2);
+    ctx.drawImage(images.arrow, 0, 0, 16, 16, a.x - camera.x, a.y - camera.y, 16, 16);
   }
 }
 
