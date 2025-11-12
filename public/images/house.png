@@ -1,0 +1,1 @@
+ctx.drawImage(images.house, hx, hy, 128, 128);
