@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background-color: #222;
+  background-color: #1b1b1b;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10,5 +10,5 @@ body {
 canvas {
   image-rendering: pixelated;
   border: 2px solid #fff;
-  background: #1a3a1a;
+  background-color: #1a3a1a;
 }
