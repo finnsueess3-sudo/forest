@@ -1,49 +1,67 @@
-// server.js
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, "public")));
+const PORT = process.env.PORT || 3000;
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 let players = {};
 
-io.on("connection", (socket) => {
-  console.log("connected:", socket.id);
-  // Startposition zufällig innerhalb kleiner Range
-  players[socket.id] = { x: (Math.random()-0.5)*20, y:0, z:(Math.random()-0.5)*20, hp:100, weapon:"sword" };
+io.on('connection', (socket) => {
+  console.log(`Player connected: ${socket.id}`);
 
-  // sende aktuellen Zustand an neuen Spieler
-  socket.emit("currentPlayers", players);
-  socket.broadcast.emit("newPlayer", { id: socket.id, ...players[socket.id] });
+  players[socket.id] = {
+    x: Math.random() * 800,
+    y: Math.random() * 600,
+    hp: 4,
+    facing: 'down'
+  };
 
-  socket.on("move", (data) => {
-    // minimal validieren
-    players[socket.id] = { ...players[socket.id], ...data };
-    socket.broadcast.emit("playerMoved", { id: socket.id, ...players[socket.id] });
-  });
+  socket.emit('currentPlayers', players);
+  socket.broadcast.emit('newPlayer', { id: socket.id, data: players[socket.id] });
 
-  socket.on("attack", (payload) => {
-    // payload: { targetId, type }
-    if(!payload) return;
-    const target = payload.targetId;
-    const type = payload.type || "sword";
-    if(target && players[target]){
-      const dmg = type === "bow" ? 15 : 10;
-      players[target].hp = Math.max(0, players[target].hp - dmg);
-      io.emit("playerHit", { id: target, hp: players[target].hp });
+  socket.on('move', (data) => {
+    if (players[socket.id]) {
+      players[socket.id].x = data.x;
+      players[socket.id].y = data.y;
+      players[socket.id].facing = data.facing;
+      io.emit('playerMoved', { id: socket.id, data: players[socket.id] });
     }
   });
 
-  socket.on("disconnect", () => {
+  socket.on('attack', () => {
+    const attacker = players[socket.id];
+    if (!attacker) return;
+
+    // Trefferprüfung
+    for (let id in players) {
+      if (id === socket.id) continue;
+      const target = players[id];
+      const dx = target.x - attacker.x;
+      const dy = target.y - attacker.y;
+      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) {
+        target.hp -= 1;
+        if (target.hp <= 0) {
+          target.hp = 4;
+          target.x = Math.random() * 800;
+          target.y = Math.random() * 600;
+        }
+        io.emit('playerHit', { id, hp: target.hp });
+      }
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`Player disconnected: ${socket.id}`);
     delete players[socket.id];
-    io.emit("playerDisconnected", socket.id);
+    io.emit('playerDisconnected', socket.id);
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log("Server running on port", PORT));
+server.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
