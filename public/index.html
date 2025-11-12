@@ -1,36 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Forest Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zelda Multiplayer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Loadscreen (ohne PIN) -->
-  <div id="loadscreen">
-    <h1>Forest Game</h1>
-    <p>Lädt bitte warten...</p>
-    <div id="progressWrap">
-      <div id="progressBar"><div id="progressFill"></div></div>
-      <div id="progressText">0%</div>
-    </div>
-  </div>
-
-  <!-- HUD / Overlay -->
-  <div id="overlay" style="display:none;">
-    <div id="hudLeft">
-      <div id="health">HP: 100</div>
-    </div>
-    <div id="hudCenter">
-      <div id="centerBtn">Klicken um zu starten</div>
-    </div>
-    <div id="hudRight">
-      <div id="hint">WASD = Laufen • Shift = Sprint • Leertaste = Springen • Maus = Kamera • Klick = Angriff</div>
-    </div>
-  </div>
-
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="scripts.js"></script>
+  <script src="scripts.js"></script>
 </body>
 </html>
