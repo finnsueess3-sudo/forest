@@ -1,0 +1,2 @@
+const fireFrame = Math.floor((Date.now() / 150) % 4);
+ctx.drawImage(images.fire, fireFrame * 32, 0, 32, 32, fx, fy, 32, 32);
